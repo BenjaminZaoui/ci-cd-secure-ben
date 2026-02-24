@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bestiaire LoL</title>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e4e4e4;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #c9aa71, #f0e6d2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #8b8b8b;
+            font-size: 1.1rem;
+        }
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            background: rgba(201, 170, 113, 0.1);
+            border: 1px solid #c9aa71;
+            border-radius: 10px;
+            padding: 15px 25px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #c9aa71;
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            color: #8b8b8b;
+        }
+        .filters {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            align-items: flex-end;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .filter-group label {
+            font-size: 0.85rem;
+            color: #c9aa71;
+        }
+        input[type="text"] {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #3a3a5c;
+            background: #1a1a2e;
+            color: #e4e4e4;
+            font-size: 0.95rem;
+            min-width: 150px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #c9aa71;
+        }
+        /* Select2 custom styling */
+        .select2-container--default .select2-selection--multiple {
+            background: #1a1a2e;
+            border: 1px solid #3a3a5c;
+            border-radius: 8px;
+            min-height: 42px;
+            min-width: 180px;
+        }
+        .select2-container--default.select2-container--focus .select2-selection--multiple {
+            border-color: #c9aa71;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background: rgba(201, 170, 113, 0.3);
+            border: 1px solid #c9aa71;
+            color: #c9aa71;
+            border-radius: 4px;
+            padding: 4px 8px 4px 24px;
+            margin: 4px;
+            position: relative;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            position: absolute;
+            left: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #1a1a2e;
+            background: #c9aa71;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            font-size: 12px;
+            line-height: 12px;
+            text-align: center;
+            font-weight: bold;
+            transition: all 0.2s;
+            margin: 0;
+            padding: 0;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+            background: #e74c3c;
+            color: #fff;
+        }
+        .select2-dropdown {
+            background: #1a1a2e;
+            border: 1px solid #3a3a5c;
+        }
+        .select2-container--default .select2-results__option {
+            color: #e4e4e4;
+            padding: 8px 12px;
+        }
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background: rgba(201, 170, 113, 0.3);
+            color: #f0e6d2;
+        }
+        .select2-container--default .select2-results__option[aria-selected=true] {
+            background: rgba(201, 170, 113, 0.5);
+        }
+        .select2-search--dropdown .select2-search__field {
+            background: #16213e;
+            border: 1px solid #3a3a5c;
+            color: #e4e4e4;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+            padding: 5px 10px;
+        }
+        .select2-container--default .select2-search--inline .select2-search__field {
+            color: #e4e4e4;
+        }
+        .champions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        .champion-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid #3a3a5c;
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            display: flex;
+            gap: 15px;
+        }
+        .champion-card:hover {
+            transform: translateY(-5px);
+            border-color: #c9aa71;
+            box-shadow: 0 10px 30px rgba(201, 170, 113, 0.1);
+        }
+        .champion-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            border: 2px solid #3a3a5c;
+            object-fit: cover;
+            flex-shrink: 0;
+            transition: border-color 0.3s;
+        }
+        .champion-card:hover .champion-img {
+            border-color: #c9aa71;
+        }
+        .champion-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .champion-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #f0e6d2;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #3a3a5c;
+            padding-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .champion-info {
+            display: grid;
+            gap: 6px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        .info-label {
+            color: #8b8b8b;
+        }
+        .info-value {
+            color: #e4e4e4;
+            font-weight: 500;
+            text-align: right;
+            max-width: 60%;
+        }
+        .lane-tags {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .tag {
+            background: rgba(201, 170, 113, 0.2);
+            color: #c9aa71;
+            padding: 2px 8px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+        }
+        .tag.melee {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+        }
+        .tag.ranged {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+        }
+        .tag.polyvalent {
+            background: rgba(155, 89, 182, 0.3);
+            color: #9b59b6;
+            font-weight: bold;
+        }
+        .champion-card.multi-lane {
+            border-left: 3px solid #9b59b6;
+        }
+        .no-results {
+            text-align: center;
+            padding: 50px;
+            color: #8b8b8b;
+            font-size: 1.2rem;
+            grid-column: 1 / -1;
+        }
+        #count {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #8b8b8b;
+        }
+        .reset-btn {
+            background: #c9aa71;
+            color: #1a1a2e;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+            height: 42px;
+        }
+        .reset-btn:hover {
+            background: #f0e6d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Bestiaire des Champions</h1>
+            <p class="subtitle">League of Legends - Encyclopédie complète</p>
+        </header>
+
+        <div class="stats-bar" id="stats-bar">
+            <!-- Stats loaded via JS -->
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label>Rechercher</label>
+                <input type="text" id="search" placeholder="Nom du champion...">
+            </div>
+            <div class="filter-group">
+                <label>Lane</label>
+                <select id="lane-filter" class="multi-select" multiple="multiple">
+                    <option value="Top">Top</option>
+                    <option value="Jungle">Jungle</option>
+                    <option value="Mid">Mid</option>
+                    <option value="ADC">ADC</option>
+                    <option value="Support">Support</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Portée</label>
+                <select id="range-filter" class="multi-select" multiple="multiple">
+                    <option value="Corps à corps">Corps à corps</option>
+                    <option value="Distance">Distance</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Énergie</label>
+                <select id="energy-filter" class="multi-select" multiple="multiple">
+                    <option value="Mana">Mana</option>
+                    <option value="Énergie">Énergie</option>
+                    <option value="Rage">Rage</option>
+                    <option value="Aucune">Sans ressource</option>
+                    <option value="Vie">Vie (Coût PV)</option>
+                    <option value="Férocité">Férocité</option>
+                    <option value="Chaleur">Chaleur</option>
+                    <option value="Flow">Flow</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Année</label>
+                <select id="year-filter" class="multi-select" multiple="multiple">
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Polyvalence</label>
+                <select id="polyvalent-filter" class="multi-select" multiple="multiple">
+                    <option value="multi-lane">Multi-lane (2+ lanes)</option>
+                    <option value="mono-lane">Mono-lane</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <button class="reset-btn" onclick="resetFilters()">Réinitialiser</button>
+            </div>
+        </div>
+
+        <p id="count"></p>
+        <div class="champions-grid" id="champions-grid">
+            <!-- Champions loaded via JS -->
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        let allChampions = [];
+        const DDRAGON_VERSION = '14.1.1';
+
+        // Mapping des noms de champions pour Data Dragon
+        const championNameMap = {
+            "Aurelion Sol": "AurelionSol",
+            "Bel'Veth": "Belveth",
+            "Cho'Gath": "Chogath",
+            "Dr. Mundo": "DrMundo",
+            "Jarvan IV": "JarvanIV",
+            "K'Sante": "KSante",
+            "Kai'Sa": "Kaisa",
+            "Kha'Zix": "Khazix",
+            "Kog'Maw": "KogMaw",
+            "LeBlanc": "Leblanc",
+            "Lee Sin": "LeeSin",
+            "Master Yi": "MasterYi",
+            "Miss Fortune": "MissFortune",
+            "Nunu & Willump": "Nunu",
+            "Rek'Sai": "RekSai",
+            "Renata Glasc": "Renata",
+            "Tahm Kench": "TahmKench",
+            "Twisted Fate": "TwistedFate",
+            "Vel'Koz": "Velkoz",
+            "Wukong": "MonkeyKing",
+            "Xin Zhao": "XinZhao"
+        };
+
+        function getChampionImageUrl(name) {
+            const ddName = championNameMap[name] || name.replace(/['\s.]/g, '');
+            return `https://ddragon.leagueoflegends.com/cdn/${DDRAGON_VERSION}/img/champion/${ddName}.png`;
+        }
+
+        async function loadChampions() {
+            const response = await fetch('/api/champions');
+            allChampions = await response.json();
+            
+            // Populate year filter
+            const years = [...new Set(allChampions.map(c => c.year))].sort();
+            const yearSelect = document.getElementById('year-filter');
+            years.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
+            });
+
+            // Initialize Select2 on all multi-select
+            $('.multi-select').select2({
+                placeholder: 'Tous',
+                allowClear: true,
+                width: '180px'
+            });
+
+            // Add change event listeners
+            $('.multi-select').on('change', filterChampions);
+
+            renderChampions(allChampions);
+            loadStats();
+        }
+
+        async function loadStats() {
+            const response = await fetch('/api/stats');
+            const stats = await response.json();
+            
+            const multiLaneCount = allChampions.filter(c => c.lane.length >= 2).length;
+            
+            document.getElementById('stats-bar').innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-number">${stats.total}</div>
+                    <div class="stat-label">Champions</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${multiLaneCount}</div>
+                    <div class="stat-label">Flex picks</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${stats.by_range['Corps à corps']}</div>
+                    <div class="stat-label">Corps à corps</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${stats.by_range['Distance']}</div>
+                    <div class="stat-label">Distance</div>
+                </div>
+            `;
+        }
+
+        function renderChampions(champions) {
+            const grid = document.getElementById('champions-grid');
+            const count = document.getElementById('count');
+            
+            count.textContent = `${champions.length} champion${champions.length > 1 ? 's' : ''} trouvé${champions.length > 1 ? 's' : ''}`;
+
+            if (champions.length === 0) {
+                grid.innerHTML = '<div class="no-results">Aucun champion trouvé</div>';
+                return;
+            }
+
+            grid.innerHTML = champions.map(c => {
+                const isMultiLane = c.lane.length >= 2;
+                return `
+                <div class="champion-card ${isMultiLane ? 'multi-lane' : ''}">
+                    <img src="${getChampionImageUrl(c.name)}" 
+                         alt="${c.name}" 
+                         class="champion-img"
+                         onerror="this.src='https://ddragon.leagueoflegends.com/cdn/${DDRAGON_VERSION}/img/profileicon/29.png'">
+                    <div class="champion-content">
+                        <div class="champion-name">
+                            ${c.name}
+                            ${isMultiLane ? '<span class="tag polyvalent">Flex</span>' : ''}
+                        </div>
+                        <div class="champion-info">
+                            <div class="info-row">
+                                <span class="info-label">Lane</span>
+                                <div class="lane-tags">
+                                    ${c.lane.map(l => `<span class="tag">${l}</span>`).join('')}
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Race</span>
+                                <span class="info-value">${c.race}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Année</span>
+                                <span class="info-value">${c.year}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Énergie</span>
+                                <span class="info-value">${c.energy}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Portée</span>
+                                <span class="tag ${c.range === 'Corps à corps' ? 'melee' : 'ranged'}">${c.range}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function filterChampions() {
+            const search = document.getElementById('search').value.toLowerCase().trim();
+            const lanes = $('#lane-filter').val() || [];
+            const ranges = $('#range-filter').val() || [];
+            const energies = $('#energy-filter').val() || [];
+            const years = $('#year-filter').val() || [];
+            const polyvalent = $('#polyvalent-filter').val() || [];
+
+            let filtered = allChampions;
+
+            // Recherche textuelle améliorée - cherche dans tous les champs
+            if (search) {
+                filtered = filtered.filter(c => {
+                    const searchableText = [
+                        c.name,
+                        c.race,
+                        ...c.lane,
+                        c.energy,
+                        c.range,
+                        c.year.toString()
+                    ].join(' ').toLowerCase();
+                    
+                    // Supporte la recherche multi-mots (tous les mots doivent matcher)
+                    const searchTerms = search.split(/\s+/).filter(t => t.length > 0);
+                    return searchTerms.every(term => searchableText.includes(term));
+                });
+            }
+            
+            // Filtre lanes - TOUTES les lanes du champion doivent être dans la sélection
+            if (lanes.length > 0) {
+                filtered = filtered.filter(c => c.lane.every(l => lanes.includes(l)));
+            }
+            
+            // Filtre portée - champion doit avoir UNE des portées sélectionnées
+            if (ranges.length > 0) {
+                filtered = filtered.filter(c => ranges.includes(c.range));
+            }
+            
+            // Filtre énergie - champion doit utiliser AU MOINS UN des types d'énergie
+            if (energies.length > 0) {
+                filtered = filtered.filter(c => 
+                    energies.some(e => c.energy.toLowerCase().includes(e.toLowerCase()))
+                );
+            }
+            
+            // Filtre années - champion doit être sorti dans UNE des années sélectionnées
+            if (years.length > 0) {
+                filtered = filtered.filter(c => years.includes(c.year.toString()));
+            }
+            
+            // Filtre polyvalence
+            if (polyvalent.length > 0) {
+                filtered = filtered.filter(c => {
+                    const isMultiLane = c.lane.length >= 2;
+                    if (polyvalent.includes('multi-lane') && polyvalent.includes('mono-lane')) {
+                        return true;
+                    }
+                    if (polyvalent.includes('multi-lane')) {
+                        return isMultiLane;
+                    }
+                    if (polyvalent.includes('mono-lane')) {
+                        return !isMultiLane;
+                    }
+                    return true;
+                });
+            }
+
+            renderChampions(filtered);
+        }
+
+        function resetFilters() {
+            document.getElementById('search').value = '';
+            $('.multi-select').val(null).trigger('change');
+            renderChampions(allChampions);
+        }
+
+        // Event listener for search
+        document.getElementById('search').addEventListener('input', filterChampions);
+
+        // Load on page load
+        $(document).ready(function() {
+            loadChampions();
+        });
+    </script>
+</body>
+</html>
