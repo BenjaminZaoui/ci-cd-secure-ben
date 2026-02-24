@@ -14,7 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 #récupère tout l'historique git
+          fetch-depth: 0 #récupère tout l'historique github
 
       - name: Set up Python
         uses: actions/setup-python@v5
