@@ -57,6 +57,46 @@ jobs:
           source: "docker-compose.yml"
           target: "~/app"
 
+      - name: Setup Traefik on Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            # Create network if not exists
+            docker network inspect admin_web_traefik >/dev/null 2>&1 || docker network create admin_web_traefik
+
+            # Check if Traefik is running
+            if ! docker ps --format '{{.Names}}' | grep -q '^traefik$'; then
+              echo "Starting Traefik container..."
+              docker run -d \
+                --name traefik \
+                --restart unless-stopped \
+                --network admin_web_traefik \
+                -p 80:80 \
+                -p 443:443 \
+                -v /var/run/docker.sock:/var/run/docker.sock:ro \
+                -v traefik-letsencrypt:/letsencrypt \
+                traefik:v3.0 \
+                --api.dashboard=true \
+                --providers.docker=true \
+                --providers.docker.exposedbydefault=false \
+                --providers.docker.network=admin_web_traefik \
+                --entrypoints.web.address=:80 \
+                --entrypoints.websecure.address=:443 \
+                --certificatesresolvers.letsencrypt.acme.httpchallenge=true \
+                --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web \
+                --certificatesresolvers.letsencrypt.acme.email=admin@benjamin.soudry-ort.online \
+                --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json \
+                --entrypoints.web.http.redirections.entryPoint.to=websecure \
+                --entrypoints.web.http.redirections.entryPoint.scheme=https
+              echo "Traefik started."
+            else
+              echo "Traefik is already running."
+            fi
+
       - name: Deploy to Server
         uses: appleboy/ssh-action@v1.0.3
         with:
