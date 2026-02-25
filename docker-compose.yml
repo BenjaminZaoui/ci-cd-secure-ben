@@ -45,8 +45,6 @@ services:
       - "traefik.http.services.flask.loadbalancer.server.port=5000"
     networks:
       - admin_web_traefik
-    ports:
-      - "5000:80"
 networks:
   admin_web_traefik:
     external: true
